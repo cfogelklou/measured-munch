@@ -6,7 +6,7 @@ export function useCountdown(fastState: FastState, settings: FastSettings): Time
     hours: 0,
     minutes: 0,
     seconds: 0,
-    isComplete: true
+    isComplete: true,
   });
 
   useEffect(() => {
@@ -15,7 +15,7 @@ export function useCountdown(fastState: FastState, settings: FastSettings): Time
         hours: 0,
         minutes: 0,
         seconds: 0,
-        isComplete: true
+        isComplete: true,
       });
       return;
     }
@@ -23,17 +23,17 @@ export function useCountdown(fastState: FastState, settings: FastSettings): Time
     const calculateTimeRemaining = () => {
       const now = Math.floor(Date.now() / 1000); // current epoch time in seconds
       const startTime = Math.floor(fastState.startTime! / 1000); // start time in seconds
-      const endTime = startTime + (settings.fastingHours * 60 * 60); // end time in seconds
+      const endTime = startTime + settings.fastingHours * 60 * 60; // end time in seconds
       const totalSecondsRemaining = Math.max(0, endTime - now);
-      
+
       const isComplete = totalSecondsRemaining <= 0;
-      
+
       if (isComplete) {
         return {
           hours: 0,
           minutes: 0,
           seconds: 0,
-          isComplete: true
+          isComplete: true,
         };
       }
 
@@ -45,7 +45,7 @@ export function useCountdown(fastState: FastState, settings: FastSettings): Time
         hours,
         minutes,
         seconds,
-        isComplete: false
+        isComplete: false,
       };
     };
 
