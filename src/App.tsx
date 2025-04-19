@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import './App.css';
+import './styles.css';
 import { useFastSettings, useFastState } from './hooks';
 import { useCountdown } from './useCountdown';
 
