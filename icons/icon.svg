@@ -1,7 +1,7 @@
 <svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
   <!-- Fasting Arc (270 degrees) -->
   <path
-    d="M 156.57 70.71 A 80 80 0 1 1 43.43 70.71"
+    d="M 156.57 43.43 A 80 80 0 1 0 156.57 156.57"
     fill="none"
     stroke="#4A90E2"
     stroke-width="10"
@@ -10,7 +10,7 @@
 
   <!-- Eating Arc (90 degrees) -->
   <path
-    d="M 43.43 70.71 A 80 80 0 0 1 156.57 70.71"
+    d="M 156.57 156.57 A 80 80 0 0 0 156.57 43.43"
     fill="none"
     stroke="#7ED321"
     stroke-width="15"
@@ -18,7 +18,7 @@
   />
 
   <!-- Pizza Slice -->
-  <g transform="translate(100, 100)">
+  <g transform="translate(100, 100) rotate(0)">
     <!-- Pizza Crust -->
     <path
       d="M 56.29 -32.5 L 64.95 -37.5 A 75 75 0 0 1 64.95 37.5 L 56.29 32.5 A 65 65 0 0 0 56.29 -32.5 Z"
