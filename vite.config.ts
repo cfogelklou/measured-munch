@@ -13,6 +13,8 @@ export default defineConfig({
         name: 'Measured Munch',
         short_name: 'Munch',
         description: 'A simple intermittent-fasting PWA.',
+        start_url: ".",
+        display: "standalone",      
         theme_color: '#ffffff',
         icons: [
           {
