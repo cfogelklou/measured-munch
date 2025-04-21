@@ -3,6 +3,10 @@ import { render, fireEvent } from '@testing-library/react';
 import App from './App';
 import { LSProvider } from './context';
 
+describe('Unit Tests', () => {
+  it('sup', () => {});
+});
+
 describe('App Component', () => {
   it('renders correctly', () => {
     const { getByText } = render(
@@ -25,7 +29,7 @@ describe('App Component', () => {
     fireEvent.click(startButton);
 
     // Delay for 5 seconds to simulate fasting
-    await new Promise((resolve) => setTimeout(resolve, 5000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     // Stop the fast
     const stopButton = getByText('Stop Fast');
@@ -38,5 +42,10 @@ describe('App Component', () => {
     // Verify the fasting record is added
     expect(getByText('Successful Fasts:')).toBeInTheDocument();
     //expect(getByText('1')).toBeInTheDocument();
+
+    // Switch to the "Stats" tab
+    //const monthlyTab = getByText('Monthly Overview');
+    //expect(monthlyTab).toBeInTheDocument();
+    //fireEvent.click(monthlyTab);
   });
 }, 10000); // Set a timeout for the test to allow for async operations

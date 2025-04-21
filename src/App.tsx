@@ -3,7 +3,6 @@ import './styles.css';
 import { useCountdown } from './useCountdown';
 import { FastingRecord } from './types';
 import FastingStats from './FastingStats';
-import FastingHistoryGraph from './FastingHistoryGraph';
 import { useLSContext } from './context';
 import { dbg } from './debug';
 import { formatTime } from './hooks';
@@ -57,7 +56,7 @@ function App() {
   };
 
   const saveSettings = () => {
-    const hours = parseInt(tempFastingHours);
+    const hours = parseFloat(tempFastingHours);
     if (!isNaN(hours) && hours > 0 && hours <= 72) {
       setFastingSettings({
         ...fastingSettings,
@@ -134,17 +133,9 @@ function App() {
           >
             Stats
           </button>
-          <button
-            className={`tab-button ${activeTab === 'graph' ? 'active' : ''}`}
-            onClick={() => setActiveTab('graph')}
-          >
-            Monthly Overview
-          </button>
         </div>
 
         {activeTab === 'stats' && <FastingStats history={history} />}
-
-        {activeTab === 'graph' && <FastingHistoryGraph records={history.records} />}
       </section>
 
       {/* Settings Modal */}
