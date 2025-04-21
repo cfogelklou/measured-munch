@@ -18,12 +18,9 @@ export interface FastingRecord {
   startTime: number; // Epoch milliseconds
   endTime: number; // Epoch milliseconds
   durationMs: number; // Duration in milliseconds
-  successfull: boolean; // Whether the fast was completed or stopped early
+  targetMs: number; // Target duration in milliseconds
 }
 
 export interface FastingHistory {
   records: FastingRecord[];
-  longestFast: number; // Duration in hours
-  shortestFast: number; // Duration in hours
-  successfulFasts: number; // Count of successful fasts
 }

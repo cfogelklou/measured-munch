@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import './styles.css';
 import { useCountdown } from './useCountdown';
 import { FastingRecord } from './types';
-import FastingStats from './FastingStats';
+import FastingStats from './fasting_stats';
 import { useLSContext } from './context';
 import { dbg } from './debug';
-import { formatTime } from './hooks';
+import { formatTime, MIN_FASTING_MS } from './hooks';
 
 function App() {
   const {
@@ -22,16 +22,25 @@ function App() {
   const [tempFastingHours, setTempFastingHours] = useState(fastingSettings.fastingHours.toString());
   const [activeTab, setActiveTab] = useState<'stats' | 'graph'>('stats');
 
-  const timeRemaining = useCountdown(fastingState, fastingSettings);
+  // Update tempFastingHours when fastingSettings changes (from another tab/component)
+  useEffect(() => {
+    setTempFastingHours(fastingSettings.fastingHours.toString());
+  }, [fastingSettings.fastingHours]);
 
-  const startFast = () => {
+  const startFast = useCallback(() => {
+    dbg.log('Starting fast...');
     setFastingState({
       isActive: true,
       startTime: Date.now(),
     });
-  };
+  }, [setFastingState]);
+
+  const timeRemaining = useCountdown(fastingState, fastingSettings);
+  dbg.log('Time remaining:', timeRemaining);
 
   const stopFast = () => {
+    dbg.log('Stopping fast...');
+
     // If fasting is active and not complete, record it as incomplete
     if (fastingState.isActive && fastingState.startTime) {
       const now = Date.now();
@@ -42,7 +51,7 @@ function App() {
         startTime: fastingState.startTime,
         endTime: now,
         durationMs: elapsedMs,
-        successfull: fastingState.isActive && timeRemaining.isComplete,
+        targetMs: fastingSettings.fastingHours * 60 * 60 * 1000,
       };
 
       dbg.log('Adding fast record:', fastRecord);
@@ -55,16 +64,29 @@ function App() {
     });
   };
 
-  const saveSettings = () => {
+  useEffect(() => {
+    if (timeRemaining.isComplete && fastingState.isActive && fastingState.startTime) {
+      const fastDurationMs = Date.now() - fastingState.startTime;
+      // Only stop if the fast has been active for at least a couple seconds
+      if (fastDurationMs > MIN_FASTING_MS) {
+        dbg.log('Fasting complete! Stopping fast...');
+        stopFast();
+      }
+    }
+  }, [timeRemaining.isComplete, fastingState.isActive, stopFast]);
+
+  const saveSettings = useCallback(() => {
     const hours = parseFloat(tempFastingHours);
-    if (!isNaN(hours) && hours > 0 && hours <= 72) {
+    const ms = hours * 60 * 60 * 1000;
+
+    if (!isNaN(hours) && ms > MIN_FASTING_MS && hours <= 72) {
       setFastingSettings({
         ...fastingSettings,
         fastingHours: hours,
       });
       setShowSettings(false);
     }
-  };
+  }, [tempFastingHours, setFastingSettings, fastingSettings]);
 
   const getFastingStatus = () => {
     if (!fastingState.isActive) {
@@ -75,14 +97,8 @@ function App() {
       return 'Fasting complete! You can eat now';
     }
 
-    return 'Fasting in progress';
+    return 'You are fasting...';
   };
-
-  dbg.log('Fasting state:', fastingState);
-  dbg.log('Fasting settings:', fastingSettings);
-  dbg.log('Time remaining:', timeRemaining);
-  dbg.log('Fasting history:', history);
-  dbg.log('Active tab:', activeTab);
 
   return (
     <div className='app-container'>
@@ -97,8 +113,8 @@ function App() {
       <header className='app-header'>
         <h1>Measured Munch</h1>
         <p className='app-description'>
-          Track your intermittent fasting periods easily. Start a fast and we'll tell you when it's
-          time to eat again.
+          Track your intermittent fasting. <br />
+          Start a fast and we'll tell you when it's time to eat again.
         </p>
       </header>
 
@@ -117,7 +133,7 @@ function App() {
           </button>
         ) : (
           <button className='action-button stop' onClick={stopFast}>
-            Stop Fast
+            I'm Hungry
           </button>
         )}
       </div>

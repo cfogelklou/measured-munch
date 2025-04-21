@@ -9,12 +9,22 @@ export const FASTING_HISTORY_KEY = 'measuredMunch:history';
 export const SETTINGS_KEYS = [FAST_SETTINGS_KEY, FAST_STATE_KEY, FASTING_HISTORY_KEY];
 
 // Default settings
-const DEFAULT_FASTING_HOURS = 16;
+export const DEFAULT_FASTING_HOURS = 16;
+export const MIN_FASTING_MS = 5000; // Minimum fasting duration in milliseconds
 
 export function formatTime(hours: number, minutes: number, seconds: number): string {
   return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds
     .toString()
     .padStart(2, '0')}`;
+}
+
+export function formatTimeFromMs(ms: number): string {
+  const totalSeconds = Math.floor(ms / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  return formatTime(hours, minutes, seconds);
 }
 
 export function msToHours(ms: number): number {
@@ -33,17 +43,20 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T)
       const item = window.localStorage.getItem(key);
       return item ? JSON.parse(item) : initialValue;
     } catch (error) {
-      console.error('Error reading from localStorage:', error);
+      console.error(`Error reading from localStorage for key ${key}:`, error);
       return initialValue;
     }
   });
 
   const setValue = (value: T) => {
     try {
-      setStoredValue(value);
-      window.localStorage.setItem(key, JSON.stringify(value));
+      // Only update if value actually changed
+      if (JSON.stringify(storedValue) !== JSON.stringify(value)) {
+        setStoredValue(value);
+        window.localStorage.setItem(key, JSON.stringify(value));
+      }
     } catch (error) {
-      console.error('Error setting localStorage value:', error);
+      console.error(`Error setting localStorage value for key ${key}:`, error);
     }
   };
 
@@ -78,45 +91,42 @@ export function useLSCurrentFastingState(): [FastState, (state: FastState) => vo
 export function useLSHistory(): [FastingHistory, (record: FastingRecord) => void, () => void] {
   const [history, setHistory] = useLocalStorage<FastingHistory>(FASTING_HISTORY_KEY, {
     records: [],
-    longestFast: 0,
-    shortestFast: Infinity,
-    successfulFasts: 0,
   });
 
   // Add a new fasting record
-  const addRecord = (record: FastingRecord) => {
-    const updatedHistory = { ...history };
-    updatedHistory.records = [record, ...updatedHistory.records].slice(0, 30); // Keep last 30 records
+  const addHistoryRecord = (record: FastingRecord) => {
+    try {
+      const updatedHistory = { ...history };
 
-    if (record.successfull) {
-      updatedHistory.successfulFasts += 1;
+      // Check if record already exists to prevent duplicate entries
+      const recordExists = updatedHistory.records.some(
+        (r) => r.startTime === record.startTime && r.endTime === record.endTime,
+      );
+
+      if (!recordExists) {
+        updatedHistory.records = [record, ...updatedHistory.records];
+
+        // Save updated history
+        setHistory(updatedHistory);
+      }
+    } catch (error) {
+      console.error('Error adding fasting record:', error);
     }
-
-    const durationInHours = msToHours(record.durationMs);
-
-    if (durationInHours > updatedHistory.longestFast) {
-      updatedHistory.longestFast = durationInHours;
-    }
-
-    if (updatedHistory.shortestFast <= 0 || durationInHours <= updatedHistory.shortestFast) {
-      updatedHistory.shortestFast = durationInHours;
-    }
-
-    setHistory(updatedHistory);
   };
 
   // Clear fasting history
   const clearHistory = () => {
-    setHistory({
-      records: [],
-      longestFast: 0,
-      shortestFast: Infinity,
-      successfulFasts: 0,
-    });
+    try {
+      setHistory({
+        records: [],
+      });
+    } catch (error) {
+      console.error('Error clearing fasting history:', error);
+    }
   };
 
   // Return array of functions and state
-  return [history, addRecord, clearHistory];
+  return [history, addHistoryRecord, clearHistory];
 }
 
 /**
@@ -124,9 +134,28 @@ export function useLSHistory(): [FastingHistory, (record: FastingRecord) => void
  * @returns A function to clear all local storage data
  */
 export function useLSClearAll(): () => void {
-  return () => {
-    SETTINGS_KEYS.forEach((key) => {
-      window.localStorage.removeItem(key);
-    });
+  const clearAll = () => {
+    try {
+      // Remove all app-related localStorage items
+      SETTINGS_KEYS.forEach((key) => {
+        window.localStorage.removeItem(key);
+      });
+
+      // Since the storage event only fires in other tabs, we need to
+      // manually dispatch an event to notify the current tab of changes
+      SETTINGS_KEYS.forEach((key) => {
+        const event = new StorageEvent('storage', {
+          key: key,
+          newValue: null,
+          oldValue: window.localStorage.getItem(key),
+          storageArea: localStorage,
+        });
+        window.dispatchEvent(event);
+      });
+    } catch (error) {
+      console.error('Error clearing localStorage data:', error);
+    }
   };
+
+  return clearAll;
 }

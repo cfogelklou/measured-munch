@@ -2,9 +2,12 @@ import { describe, it, expect } from 'vitest';
 import { render, fireEvent } from '@testing-library/react';
 import App from './App';
 import { LSProvider } from './context';
+import { formatTimeFromMs } from './hooks';
 
 describe('Unit Tests', () => {
-  it('sup', () => {});
+  it('sup', () => {
+    expect(formatTimeFromMs(1000)).toBe('00:00:01');
+  });
 });
 
 describe('App Component', () => {
@@ -32,7 +35,7 @@ describe('App Component', () => {
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     // Stop the fast
-    const stopButton = getByText('Stop Fast');
+    const stopButton = getByText("I'm Hungry");
     fireEvent.click(stopButton);
 
     // Switch to the "Stats" tab
