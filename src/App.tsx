@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './styles.css';
-import { useFastSettings, useFastState } from './hooks';
+import { useLSFastingHours, useLSCurrentFastingState, useLSHistory, useLSCheatDays } from './hooks';
 import { useCountdown } from './useCountdown';
+import { FastingRecord } from './types';
+import FastingStats from './FastingStats';
+import FastingHistoryGraph from './FastingHistoryGraph';
 
 function formatTime(hours: number, minutes: number, seconds: number): string {
   return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
@@ -9,11 +12,30 @@ function formatTime(hours: number, minutes: number, seconds: number): string {
 
 function App() {
   const [showSettings, setShowSettings] = useState(false);
-  const [fastSettings, setFastSettings] = useFastSettings();
-  const [fastState, setFastState] = useFastState();
+  const [fastSettings, setFastSettings] = useLSFastingHours();
+  const [fastState, setFastState] = useLSCurrentFastingState();
+  const [fastingHistory, addFastingRecord] = useLSHistory();
+  const [cheatDayState, _, useCheatDay] = useLSCheatDays();
   const [tempFastingHours, setTempFastingHours] = useState(fastSettings.fastingHours.toString());
+  const [activeTab, setActiveTab] = useState<'stats' | 'graph'>('stats');
   
   const timeRemaining = useCountdown(fastState, fastSettings);
+  
+  // Check if a fast has completed since last render
+  useEffect(() => {
+    if (fastState.isActive && timeRemaining.isComplete && fastState.startTime) {
+      // Record the completed fast
+      const endTime = fastState.startTime + (fastSettings.fastingHours * 60 * 60 * 1000);
+      const fastRecord: FastingRecord = {
+        startTime: fastState.startTime,
+        endTime: endTime,
+        duration: fastSettings.fastingHours,
+        completed: true
+      };
+      
+      addFastingRecord(fastRecord);
+    }
+  }, [timeRemaining.isComplete, fastState.startTime, fastSettings.fastingHours, addFastingRecord]);
 
   const startFast = () => {
     setFastState({
@@ -23,10 +45,45 @@ function App() {
   };
 
   const stopFast = () => {
+    // If fasting is active and not complete, record it as incomplete
+    if (fastState.isActive && !timeRemaining.isComplete && fastState.startTime) {
+      const now = Date.now();
+      const elapsedHours = (now - fastState.startTime) / (60 * 60 * 1000);
+      console.log(`Fasting stopped at ${now}, elapsed hours: ${elapsedHours}`);
+      
+      // Add incomplete fast record
+      const fastRecord: FastingRecord = {
+        startTime: fastState.startTime,
+        endTime: now,
+        duration: elapsedHours,
+        completed: false
+      };
+      
+      addFastingRecord(fastRecord);
+      
+    }
+    
     setFastState({
       isActive: false,
       startTime: null,
     });
+  };
+
+  const takeCheatDay = () => {
+    // Use a cheat day without starting a fast
+    const success = useCheatDay();
+    if (success) {
+      // Add a record for using a cheat day
+      const now = Date.now();
+      const fastRecord: FastingRecord = {
+        startTime: now,
+        endTime: now,
+        duration: 0,
+        completed: false
+      };
+      
+      addFastingRecord(fastRecord);
+    }
   };
 
   const saveSettings = () => {
@@ -91,6 +148,38 @@ function App() {
         )}
       </div>
       
+      {/* History and Stats Section */}
+      <section className="history-section">
+        <h2>Your Fasting Journey</h2>
+        
+        <div className="history-tabs">
+          <button 
+            className={`tab-button ${activeTab === 'stats' ? 'active' : ''}`}
+            onClick={() => setActiveTab('stats')}
+          >
+            Stats
+          </button>
+          <button 
+            className={`tab-button ${activeTab === 'graph' ? 'active' : ''}`}
+            onClick={() => setActiveTab('graph')}
+          >
+            Monthly Overview
+          </button>
+        </div>
+        
+        {activeTab === 'stats' && (
+          <FastingStats 
+            history={fastingHistory} 
+            cheatDayState={cheatDayState}
+            onUseCheatDay={takeCheatDay}
+          />
+        )}
+        
+        {activeTab === 'graph' && (
+          <FastingHistoryGraph records={fastingHistory.records} />
+        )}
+      </section>
+      
       {/* Settings Modal */}
       {showSettings && (
         <div className="settings-modal">
@@ -118,8 +207,16 @@ function App() {
                   onChange={(e) => setTempFastingHours(e.target.value)}
                 />
               </div>
+              {/* Add button to clear browser memory */}
+              <button className="blue-button" onClick={() => {
+                setFastState({ isActive: false, startTime: null });
+                setFastSettings({ fastingHours: 16 });
+                setShowSettings(false);
+              }}>
+                Clear Browser Memory
+              </button>
               
-              <button className="save-button" onClick={saveSettings}>
+              <button className="blue-button" onClick={saveSettings}>
                 Save Settings
               </button>
             </div>

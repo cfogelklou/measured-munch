@@ -81,6 +81,24 @@ This app is a **client-side web application** implementing a simple intermittent
   - After the countdown ends, update the interface to indicate the fast is complete.
   - Provide an option to restart the fast or go to the settings panel.
 
-## 5. Conclusion
+## 5. Fasting History & Cheat Days
+
+### History Tracking
+- **Successful Fasts:** Each time a user completes the full fasting duration set in the settings, it's recorded as a successful fast.
+- **Duration Records:** The application tracks and displays the user's longest and shortest successfully completed fast durations.
+- **Data Storage:** Fasting history data (successful fasts, durations) is stored locally using Local Storage.
+
+### Cheat Days
+- **Weekly Allowance:** Users are allocated 2 "cheat days" per week.
+- **Manual Activation:** A dedicated button allows the user to consciously take a cheat day, bypassing the need to start a fast for that day.
+- **Automatic Consumption:** If a user stops an active fast before the set duration is complete, one cheat day is automatically consumed.
+- **Tracking:** The number of remaining cheat days for the current week is displayed and updated in the UI.
+
+### Visualization
+- **Monthly Overview:** A bar graph is displayed at the bottom of the screen, visualizing the last 30 days.
+- **Daily Representation:** Each bar in the graph represents a single 24-hour period.
+- **Eating Window:** Within each daily bar, a thicker segment visually indicates the start and end times of the eating window for that day, based on the completed fast. Days where a cheat day was taken or no fast was recorded will be visually distinct.
+
+## 6. Conclusion
 
 Measured-Munch aims to provide a straightforward, user-friendly interface for managing intermittent fasting, with minimal distractions and dependencies. By leveraging modern web standards, Local Storage for persistence, and a clean React-based UI, the app ensures a delightful and responsive experience.
