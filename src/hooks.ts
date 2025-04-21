@@ -11,6 +11,16 @@ export const SETTINGS_KEYS = [FAST_SETTINGS_KEY, FAST_STATE_KEY, FASTING_HISTORY
 // Default settings
 const DEFAULT_FASTING_HOURS = 16;
 
+export function formatTime(hours: number, minutes: number, seconds: number): string {
+  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds
+    .toString()
+    .padStart(2, '0')}`;
+}
+
+export function msToHours(ms: number): number {
+  return ms / (1000 * 60 * 60.0);
+}
+
 /*
  * Custom hook to manage local storage state
  * @param key - The key under which the value is stored in local storage
@@ -78,16 +88,18 @@ export function useLSHistory(): [FastingHistory, (record: FastingRecord) => void
     const updatedHistory = { ...history };
     updatedHistory.records = [record, ...updatedHistory.records].slice(0, 30); // Keep last 30 records
 
-    if (record.completed) {
+    if (record.successfull) {
       updatedHistory.successfulFasts += 1;
+    }
 
-      if (record.duration > updatedHistory.longestFast) {
-        updatedHistory.longestFast = record.duration;
-      }
+    const durationInHours = msToHours(record.durationMs);
 
-      if (record.duration < updatedHistory.shortestFast) {
-        updatedHistory.shortestFast = record.duration;
-      }
+    if (durationInHours > updatedHistory.longestFast) {
+      updatedHistory.longestFast = durationInHours;
+    }
+
+    if (updatedHistory.shortestFast <= 0 || durationInHours <= updatedHistory.shortestFast) {
+      updatedHistory.shortestFast = durationInHours;
     }
 
     setHistory(updatedHistory);

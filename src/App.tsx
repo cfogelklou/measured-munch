@@ -1,16 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import './styles.css';
 import { useCountdown } from './useCountdown';
 import { FastingRecord } from './types';
 import FastingStats from './FastingStats';
 import FastingHistoryGraph from './FastingHistoryGraph';
 import { useLSContext } from './context';
-
-function formatTime(hours: number, minutes: number, seconds: number): string {
-  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds
-    .toString()
-    .padStart(2, '0')}`;
-}
+import { dbg } from './debug';
+import { formatTime } from './hooks';
 
 function App() {
   const {
@@ -19,7 +15,7 @@ function App() {
     fastingState,
     setFastingState,
     history,
-    addHistoryRecord: addHistoryRecord,
+    addHistoryRecord,
     setHistoryToEmpty,
   } = useLSContext();
 
@@ -28,28 +24,6 @@ function App() {
   const [activeTab, setActiveTab] = useState<'stats' | 'graph'>('stats');
 
   const timeRemaining = useCountdown(fastingState, fastingSettings);
-  console.log('Time Remaining:', timeRemaining);
-
-  // Check if a fast has completed since last render
-  useEffect(() => {
-    if (fastingState.isActive && timeRemaining.isComplete && fastingState.startTime) {
-      // Record the completed fast
-      const endTime = fastingState.startTime + fastingSettings.fastingHours * 60 * 60 * 1000;
-      const fastRecord: FastingRecord = {
-        startTime: fastingState.startTime,
-        endTime: endTime,
-        duration: fastingSettings.fastingHours,
-        completed: true,
-      };
-
-      addHistoryRecord(fastRecord);
-    }
-  }, [
-    timeRemaining.isComplete,
-    fastingState.startTime,
-    fastingSettings.fastingHours,
-    addHistoryRecord,
-  ]);
 
   const startFast = () => {
     setFastingState({
@@ -60,18 +34,19 @@ function App() {
 
   const stopFast = () => {
     // If fasting is active and not complete, record it as incomplete
-    if (fastingState.isActive && !timeRemaining.isComplete && fastingState.startTime) {
+    if (fastingState.isActive && fastingState.startTime) {
       const now = Date.now();
-      const elapsedHours = (now - fastingState.startTime) / (60 * 60 * 1000);
+      const elapsedMs = now - fastingState.startTime;
 
       // Add incomplete fast record
       const fastRecord: FastingRecord = {
         startTime: fastingState.startTime,
         endTime: now,
-        duration: elapsedHours,
-        completed: false,
+        durationMs: elapsedMs,
+        successfull: fastingState.isActive && timeRemaining.isComplete,
       };
 
+      dbg.log('Adding fast record:', fastRecord);
       addHistoryRecord(fastRecord);
     }
 
@@ -103,6 +78,12 @@ function App() {
 
     return 'Fasting in progress';
   };
+
+  dbg.log('Fasting state:', fastingState);
+  dbg.log('Fasting settings:', fastingSettings);
+  dbg.log('Time remaining:', timeRemaining);
+  dbg.log('Fasting history:', history);
+  dbg.log('Active tab:', activeTab);
 
   return (
     <div className='app-container'>

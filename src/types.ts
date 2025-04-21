@@ -17,8 +17,8 @@ export type TimeRemaining = {
 export interface FastingRecord {
   startTime: number; // Epoch milliseconds
   endTime: number; // Epoch milliseconds
-  duration: number; // Duration in hours
-  completed: boolean; // Whether the fast was completed or stopped early
+  durationMs: number; // Duration in milliseconds
+  successfull: boolean; // Whether the fast was completed or stopped early
 }
 
 export interface FastingHistory {

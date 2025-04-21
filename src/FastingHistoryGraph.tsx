@@ -45,8 +45,10 @@ function FastingHistoryGraph({ records }: FastingHistoryGraphProps) {
       <div className='graph-container'>
         {days.map((day) => {
           const dayRecords = dailyData[day];
-          const hasSuccessfulFast = dayRecords.some((record) => record.completed);
-          const hasCheatDay = dayRecords.some((record) => !record.completed && record.duration > 0);
+          const hasSuccessfulFast = dayRecords.some((record) => record.successfull);
+          const hasCheatDay = dayRecords.some(
+            (record) => !record.successfull && record.durationMs > 0,
+          );
 
           return (
             <div key={day} className='day-column'>
@@ -83,7 +85,7 @@ function FastingHistoryGraph({ records }: FastingHistoryGraphProps) {
                   return (
                     <div
                       key={index}
-                      className={`eating-window ${record.completed ? 'completed' : 'incomplete'}`}
+                      className={`eating-window ${record.successfull ? 'completed' : 'incomplete'}`}
                       style={{
                         top: `${startPercent}%`,
                         height: `${endPercent - startPercent}%`,
