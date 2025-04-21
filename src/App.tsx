@@ -7,6 +7,8 @@ import { useLSContext } from './context';
 import { dbg } from './debug';
 import { formatTime, MIN_FASTING_MS } from './hooks';
 
+const appStartTime = Date.now();
+
 function App() {
   const {
     fastingSettings,
@@ -67,8 +69,10 @@ function App() {
   useEffect(() => {
     if (timeRemaining.isComplete && fastingState.isActive && fastingState.startTime) {
       const fastDurationMs = Date.now() - fastingState.startTime;
+      const appDurationMs = Date.now() - appStartTime;
+      const durMs = Math.min(fastDurationMs, appDurationMs);
       // Only stop if the fast has been active for at least a couple seconds
-      if (fastDurationMs > MIN_FASTING_MS) {
+      if (durMs > MIN_FASTING_MS) {
         dbg.log('Fasting complete! Stopping fast...');
         stopFast();
       }
