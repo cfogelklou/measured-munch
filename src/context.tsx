@@ -1,10 +1,9 @@
 import React, { createContext, JSX, useContext, useEffect } from 'react';
-import { FastSettings, FastState, FastingHistory, CheatDayState, FastingRecord } from './types';
+import { FastSettings, FastState, FastingHistory, FastingRecord } from './types';
 import {
   useLSFastingHours,
   useLSCurrentFastingState,
   useLSHistory,
-  useLSCheatDays,
   useLSClearAll,
   FAST_SETTINGS_KEY,
 } from './hooks';
@@ -15,11 +14,8 @@ export type LSContextType = {
   fastingState: FastState;
   setFastingState: (state: FastState) => void;
   history: FastingHistory;
-  addRecord: (record: FastingRecord) => void;
-  clearHistory: () => void;
-  cheatDayState: CheatDayState;
-  manuallyResetCheatDays: () => void;
-  useCheatDay: () => boolean;
+  addHistoryRecord: (record: FastingRecord) => void;
+  setHistoryToEmpty: () => void;
   clearAll: () => void;
 };
 
@@ -28,8 +24,7 @@ const LSContext = createContext<LSContextType | undefined>(undefined);
 export const LSProvider: React.FC<{ children: React.ReactNode }> = ({ children }): JSX.Element => {
   const [fastingSettings, setFastingSettings] = useLSFastingHours();
   const [fastingState, setFastingState] = useLSCurrentFastingState();
-  const [history, addRecord, clearHistory] = useLSHistory();
-  const [cheatDayState, manuallyResetCheatDays, useCheatDay] = useLSCheatDays();
+  const [history, addHistoryRecord, setHistoryToEmpty] = useLSHistory();
   const clearAll = useLSClearAll();
 
   // Optionally listen for storage changes triggered in other tabs/components
@@ -55,23 +50,16 @@ export const LSProvider: React.FC<{ children: React.ReactNode }> = ({ children }
     fastingState,
     setFastingState,
     history,
-    addRecord,
-    clearHistory,
-    cheatDayState,
-    manuallyResetCheatDays,
-    useCheatDay,
+    addHistoryRecord,
+    setHistoryToEmpty,
     clearAll,
   };
 
-  return (
-    <LSContext.Provider value={contextValue}>
-      {children}
-    </LSContext.Provider>
-  );
+  return <LSContext.Provider value={contextValue}>{children}</LSContext.Provider>;
 };
 
-export const useLSContext = () => {
-  const context = useContext(LSContext);
+export const useLSContext = (): LSContextType => {
+  const context: LSContextType | undefined = useContext(LSContext);
   if (!context) {
     throw new Error('useLSContext must be used within a LSProvider');
   }

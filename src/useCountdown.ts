@@ -1,6 +1,15 @@
 import { useEffect, useState } from 'react';
 import { FastSettings, FastState, TimeRemaining } from './types';
 
+/**
+ * Custom hook to manage the countdown timer for fasting
+ * Every second, it calculates the time remaining until the fast is complete
+ * and updates the state accordingly.
+ * Any component using useCountdown will re-render every second when timeRemaining changes.
+ * @param fastState - The current fasting state
+ * @param settings - The fasting settings
+ * @returns An object containing the time remaining and completion status
+ */
 export function useCountdown(fastState: FastState, settings: FastSettings): TimeRemaining {
   const [timeRemaining, setTimeRemaining] = useState<TimeRemaining>({
     hours: 0,
@@ -61,5 +70,6 @@ export function useCountdown(fastState: FastState, settings: FastSettings): Time
     return () => clearInterval(timer);
   }, [fastState.isActive, fastState.startTime, settings.fastingHours]);
 
+  // Return the time remaining
   return timeRemaining;
 }

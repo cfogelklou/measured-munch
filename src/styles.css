@@ -365,17 +365,7 @@ input::-webkit-inner-spin-button {
   color: var(--text-primary);
 }
 
-.cheat-day-button {
-  margin: 1rem 0;
-  background-color: var(--warning-color);
-  color: var(--text-primary);
-}
 
-.cheat-day-info {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  text-align: left;
-}
 
 /* ------ Fasting History Graph Styles ------ */
 .fasting-history-graph {
@@ -430,10 +420,6 @@ input::-webkit-inner-spin-button {
   opacity: 0.3;
 }
 
-.cheat-day {
-  background-color: var(--warning-color);
-  opacity: 0.6;
-}
 
 .successful-day {
   background-color: var(--success-color);
