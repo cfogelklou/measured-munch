@@ -7,6 +7,7 @@ import { useLSContext } from './context';
 import { dbg } from './debug';
 import { formatTime, MIN_FASTING_MS } from './hooks';
 
+// Capture refresh time
 const appStartTime = Date.now();
 
 function App() {
@@ -68,6 +69,8 @@ function App() {
 
   useEffect(() => {
     if (timeRemaining.isComplete && fastingState.isActive && fastingState.startTime) {
+      // Use the minimum of fastDurationMs and appDurationMs to ensure the fasting duration
+      // does not exceed the time the app has been running (e.g., if the app was restarted).
       const fastDurationMs = Date.now() - fastingState.startTime;
       const appDurationMs = Date.now() - appStartTime;
       const durMs = Math.min(fastDurationMs, appDurationMs);
