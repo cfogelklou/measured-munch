@@ -2,15 +2,16 @@ name: Build and Deploy to GitHub Pages
 
 on:
   push:
-    branches: [ "main", "devel" ]
+    branches: ['main', 'devel']
   pull_request:
-    branches: 
-      - "*"
+    branches:
+      - '*'
   workflow_dispatch:
 
 env:
   RELEASE: release
   ID_ED25519: ${{ secrets.ID_ED25519 }}
+  CI: true
 
 jobs:
   build-and-deploy:
@@ -25,9 +26,16 @@ jobs:
         with:
           bun-version: latest
 
-      - name: Install dependencies and build
+      - name: Install dependencies
         run: |
           bun install
+
+      - name: Test
+        run: |
+          bun run test
+
+      - name: Build
+        run: |
           bun run build
 
       - name: Upload
@@ -37,4 +45,3 @@ jobs:
           chmod 600 id_ed25519
           sftp -o IdentityFile="./id_ed25519" -o "StrictHostKeyChecking=no" -b ./scripts/batchfile_sftp.txt applicaudia.se@ssh.applicaudia.se
           rm id_ed25519
-
