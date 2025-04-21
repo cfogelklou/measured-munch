@@ -38,7 +38,7 @@ function App() {
   const timeRemaining = useCountdown(fastingState, fastingSettings);
   dbg.log('Time remaining:', timeRemaining);
 
-  const stopFast = () => {
+  const stopFast = useCallback(() => {
     dbg.log('Stopping fast...');
 
     // If fasting is active and not complete, record it as incomplete
@@ -62,7 +62,7 @@ function App() {
       isActive: false,
       startTime: null,
     });
-  };
+  }, [fastingState, setFastingState, addHistoryRecord, fastingSettings]);
 
   useEffect(() => {
     if (timeRemaining.isComplete && fastingState.isActive && fastingState.startTime) {
